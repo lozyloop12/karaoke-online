@@ -1,170 +1,169 @@
-// Kho bài hát YouTube Karaoke chọn lọc theo thể loại
+// Kho bài hát YouTube Karaoke chọn lọc theo thể loại (100% Bản Beat Karaoke Không Lời Ca Sĩ)
 // Ngoài danh sách gợi ý sẵn này, người dùng có thể tìm kiếm trực tiếp mọi bài hát Karaoke trên YouTube hoặc dán link YouTube bất kỳ.
 
 const DEFAULT_KARAOKE_SONGS = [
   {
     id: "yt-1",
-    videoId: "fJ9rUzIMcZQ",
-    title: "Bohemian Rhapsody (Karaoke Version)",
+    videoId: "_ih5L6S7Ejk",
+    title: "Bohemian Rhapsody (Karaoke Beat Chuẩn)",
     artist: "Queen",
     genre: "US-UK",
-    duration: "5:55",
-    thumbnail: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg"
+    duration: "5:56",
+    thumbnail: "https://i.ytimg.com/vi/_ih5L6S7Ejk/hqdefault.jpg"
   },
   {
     id: "yt-2",
-    videoId: "2Vv-BfVoq4g",
-    title: "Perfect (Karaoke Acoustic)",
+    videoId: "yzYCGeA3Dcg",
+    title: "Perfect (Karaoke Acoustic Beat)",
     artist: "Ed Sheeran",
     genre: "US-UK",
-    duration: "4:23",
-    thumbnail: "https://i.ytimg.com/vi/2Vv-BfVoq4g/hqdefault.jpg"
+    duration: "4:25",
+    thumbnail: "https://i.ytimg.com/vi/yzYCGeA3Dcg/hqdefault.jpg"
   },
   {
     id: "yt-3",
-    videoId: "kJQP7kiw5Fk",
-    title: "Despacito (Party Vibe)",
+    videoId: "QThJlC1W5hQ",
+    title: "Despacito (Karaoke Instrumental Beat)",
     artist: "Luis Fonsi ft. Daddy Yankee",
     genre: "Remix / Party",
-    duration: "4:41",
-    thumbnail: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg"
+    duration: "3:51",
+    thumbnail: "https://i.ytimg.com/vi/QThJlC1W5hQ/hqdefault.jpg"
   },
   {
     id: "yt-4",
-    videoId: "abPmZCZZrFA",
-    title: "Chúng Ta Của Hiện Tại (Karaoke Beat Chuẩn)",
+    videoId: "JB39GfVEzFA",
+    title: "Chúng Ta Của Hiện Tại (Official Karaoke Beat)",
     artist: "Sơn Tùng M-TP",
     genre: "Nhạc Trẻ",
-    duration: "5:01",
-    thumbnail: "https://i.ytimg.com/vi/abPmZCZZrFA/hqdefault.jpg"
+    duration: "5:02",
+    thumbnail: "https://i.ytimg.com/vi/JB39GfVEzFA/hqdefault.jpg"
   },
   {
     id: "yt-5",
-    videoId: "knW7-x7Y7RE",
-    title: "Hãy Trao Cho Anh (Beat Sôi Động)",
+    videoId: "4QnFflIMkpc",
+    title: "Hãy Trao Cho Anh (Karaoke Beat Chuẩn)",
     artist: "Sơn Tùng M-TP",
     genre: "Remix / Party",
-    duration: "4:06",
-    thumbnail: "https://i.ytimg.com/vi/knW7-x7Y7RE/hqdefault.jpg"
+    duration: "4:12",
+    thumbnail: "https://i.ytimg.com/vi/4QnFflIMkpc/hqdefault.jpg"
   },
   {
     id: "yt-6",
-    videoId: "FN7ALfpGxiI",
-    title: "Nơi Này Có Anh (Karaoke Tone Nam/Nữ)",
+    videoId: "t4rjaYhmazo",
+    title: "Nơi Này Có Anh (Karaoke Beat Gốc)",
     artist: "Sơn Tùng M-TP",
     genre: "Nhạc Trẻ",
-    duration: "4:20",
-    thumbnail: "https://i.ytimg.com/vi/FN7ALfpGxiI/hqdefault.jpg"
+    duration: "4:22",
+    thumbnail: "https://i.ytimg.com/vi/t4rjaYhmazo/hqdefault.jpg"
   },
   {
     id: "yt-7",
-    videoId: "Llw9Q6akRo4",
-    title: "Cắt Đôi Nỗi Sầu (Beat Quẩy Cực Sung)",
+    videoId: "iIsfYYw4b2A",
+    title: "Cắt Đôi Nỗi Sầu (Official Karaoke Beat Chuẩn)",
     artist: "Tăng Duy Tân",
     genre: "Remix / Party",
     duration: "3:15",
-    thumbnail: "https://i.ytimg.com/vi/Llw9Q6akRo4/hqdefault.jpg"
+    thumbnail: "https://i.ytimg.com/vi/iIsfYYw4b2A/hqdefault.jpg"
   },
   {
     id: "yt-8",
-    videoId: "Yw6u6YkTgQ4",
-    title: "Bên Trên Tầng Lầu (Karaoke Remix)",
+    videoId: "2MUfA2g87vo",
+    title: "Bên Trên Tầng Lầu (Official Karaoke Beat)",
     artist: "Tăng Duy Tân",
     genre: "Remix / Party",
-    duration: "3:04",
-    thumbnail: "https://i.ytimg.com/vi/Yw6u6YkTgQ4/hqdefault.jpg"
+    duration: "3:06",
+    thumbnail: "https://i.ytimg.com/vi/2MUfA2g87vo/hqdefault.jpg"
   },
   {
     id: "yt-9",
-    videoId: "cBClD7jylos",
+    videoId: "3pFUNPGv1h0",
     title: "Waiting For You (Karaoke Beat Chuẩn)",
     artist: "MONO",
     genre: "Nhạc Trẻ",
-    duration: "4:25",
-    thumbnail: "https://i.ytimg.com/vi/cBClD7jylos/hqdefault.jpg"
+    duration: "4:21",
+    thumbnail: "https://i.ytimg.com/vi/3pFUNPGv1h0/hqdefault.jpg"
   },
   {
     id: "yt-10",
-    videoId: "gJHSDZfJrRY",
-    title: "See Tình (Karaoke Dance Vibe)",
+    videoId: "z6HE1dr4S84",
+    title: "See Tình (Karaoke Cukak Remix Beat)",
     artist: "Hoàng Thùy Linh",
     genre: "Remix / Party",
     duration: "3:05",
-    thumbnail: "https://i.ytimg.com/vi/gJHSDZfJrRY/hqdefault.jpg"
+    thumbnail: "https://i.ytimg.com/vi/z6HE1dr4S84/hqdefault.jpg"
   },
   {
     id: "yt-11",
-    videoId: "ddaEtFOsFeM",
-    title: "Mang Tiền Về Cho Mẹ (Karaoke Rap)",
+    videoId: "X04HB4u6dys",
+    title: "Mang Tiền Về Cho Mẹ (Karaoke Beat Chuẩn)",
     artist: "Đen Vâu ft. Nguyên Thảo",
     genre: "Rap / Indie",
     duration: "6:45",
-    thumbnail: "https://i.ytimg.com/vi/ddaEtFOsFeM/hqdefault.jpg"
+    thumbnail: "https://i.ytimg.com/vi/X04HB4u6dys/hqdefault.jpg"
   },
   {
     id: "yt-12",
-    videoId: "KKc_RMln5UY",
-    title: "Hai Triệu Năm (Karaoke Chill)",
+    videoId: "EqamqamwiVA",
+    title: "Hai Triệu Năm (Karaoke Beat Chuẩn)",
     artist: "Đen Vâu ft. Biên",
     genre: "Rap / Indie",
-    duration: "3:37",
-    thumbnail: "https://i.ytimg.com/vi/KKc_RMln5UY/hqdefault.jpg"
+    duration: "3:38",
+    thumbnail: "https://i.ytimg.com/vi/EqamqamwiVA/hqdefault.jpg"
   },
   {
     id: "yt-13",
-    videoId: "Jk38OqdAQxc",
-    title: "Nàng Thơ (Karaoke Acoustic)",
+    videoId: "Tqv0x1_QJlo",
+    title: "Nàng Thơ (Karaoke Beat Gốc)",
     artist: "Hoàng Dũng",
     genre: "Ballad",
-    duration: "4:14",
-    thumbnail: "https://i.ytimg.com/vi/Jk38OqdAQxc/hqdefault.jpg"
+    duration: "4:15",
+    thumbnail: "https://i.ytimg.com/vi/Tqv0x1_QJlo/hqdefault.jpg"
   },
   {
     id: "yt-14",
-    videoId: "t7tZFq29lis",
-    title: "Hơn Cả Yêu (Karaoke Song Ca / Đơn Ca)",
+    videoId: "WdCsWw1Szz8",
+    title: "Hơn Cả Yêu (Official Karaoke Beat)",
     artist: "Đức Phúc",
     genre: "Ballad",
-    duration: "4:52",
-    thumbnail: "https://i.ytimg.com/vi/t7tZFq29lis/hqdefault.jpg"
+    duration: "4:15",
+    thumbnail: "https://i.ytimg.com/vi/WdCsWw1Szz8/hqdefault.jpg"
   },
   {
     id: "yt-15",
-    videoId: "3fi7uwBU-CE",
-    title: "Ngày Mai Người Ta Lấy Chồng (Karaoke Ballad)",
+    videoId: "Vv2mtx5ZWwE",
+    title: "Ngày Mai Người Ta Lấy Chồng (Karaoke Beat Chuẩn)",
     artist: "Thành Đạt",
     genre: "Ballad",
     duration: "6:02",
-    thumbnail: "https://i.ytimg.com/vi/3fi7uwBU-CE/hqdefault.jpg"
+    thumbnail: "https://i.ytimg.com/vi/Vv2mtx5ZWwE/hqdefault.jpg"
   },
   {
     id: "yt-16",
-    videoId: "dQw4w9WgXcQ",
-    title: "Never Gonna Give You Up (Party Classic)",
+    videoId: "uwMFPoWm0qk",
+    title: "Never Gonna Give You Up (Instrumental Karaoke Beat)",
     artist: "Rick Astley",
     genre: "US-UK",
     duration: "3:33",
-    thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+    thumbnail: "https://i.ytimg.com/vi/uwMFPoWm0qk/hqdefault.jpg"
   },
   {
     id: "yt-17",
-    videoId: "09R8_2nJtjg",
-    title: "Sugar (Karaoke Pop Party)",
+    videoId: "CpZBAXvuucM",
+    title: "Sugar (Karaoke Instrumental Beat)",
     artist: "Maroon 5",
     genre: "US-UK",
-    duration: "5:01",
-    thumbnail: "https://i.ytimg.com/vi/09R8_2nJtjg/hqdefault.jpg"
+    duration: "4:04",
+    thumbnail: "https://i.ytimg.com/vi/CpZBAXvuucM/hqdefault.jpg"
   },
   {
     id: "yt-18",
-    videoId: "SlPhMPnQ58k",
-    title: "Memories (Karaoke Acoustic Sing-Along)",
+    videoId: "2mwg-7yI6N0",
+    title: "Memories (Karaoke Instrumental Beat)",
     artist: "Maroon 5",
     genre: "US-UK",
-    duration: "3:15",
-    thumbnail: "https://i.ytimg.com/vi/SlPhMPnQ58k/hqdefault.jpg"
+    duration: "3:09",
+    thumbnail: "https://i.ytimg.com/vi/2mwg-7yI6N0/hqdefault.jpg"
   }
 ];
 
 module.exports = { DEFAULT_KARAOKE_SONGS };
-

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: karaoke-online-itv
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+

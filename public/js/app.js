@@ -16,23 +16,34 @@ const state = {
   displayedSongs: [],
   selectedGenre: "ALL",
   favorites: JSON.parse(localStorage.getItem("karaoke_favorites") || "[]"),
-  networkInfo: { ip: window.location.hostname, port: window.location.port || 3000 }
+  networkInfo: { ip: window.location.hostname, port: window.location.port || 3000 },
+  activeSingers: new Map()
 };
 
-// Khởi tạo bộ chấm điểm giọng hát qua Micro
-const audioScorer = new window.KaraokeAudioScorer((telemetry) => {
-  const noteEl = document.getElementById("localPitchNote");
-  const accEl = document.getElementById("localAccuracyLabel");
-  const scoreEl = document.getElementById("localLiveScore");
+// Khởi tạo bộ chấm điểm giọng hát & truyền giọng hát thời gian thực qua Micro
+const audioScorer = new window.KaraokeAudioScorer(
+  (telemetry) => {
+    const noteEl = document.getElementById("localPitchNote");
+    const accEl = document.getElementById("localAccuracyLabel");
+    const scoreEl = document.getElementById("localLiveScore");
 
-  if (noteEl) noteEl.textContent = telemetry.pitchNote;
-  if (accEl) accEl.textContent = telemetry.accuracyLabel;
-  if (scoreEl) scoreEl.textContent = telemetry.liveScore;
+    if (noteEl) noteEl.textContent = telemetry.pitchNote;
+    if (accEl) accEl.textContent = telemetry.accuracyLabel;
+    if (scoreEl) scoreEl.textContent = telemetry.liveScore;
 
-  if (state.room) {
-    socket.emit("mic:telemetry", telemetry);
+    if (state.room) {
+      socket.emit("mic:telemetry", telemetry);
+    }
+  },
+  (voiceChunk) => {
+    if (state.room) {
+      socket.emit("voice:stream", voiceChunk);
+    }
   }
-});
+);
+
+// Khởi tạo bộ thu phát giọng hát đa thành viên (WebRTC Mesh + Web Audio Live Stream)
+const roomVoiceEngine = new window.KaraokeRoomVoiceEngine(socket, audioScorer);
 
 // ================= TIỆN ÍCH HIỂN THỊ =================
 function showToast(message) {
@@ -69,7 +80,7 @@ function initYouTubePlayerIfNeeded() {
   state.ytPlayer = new YT.Player("youtubePlayer", {
     width: "100%",
     height: "100%",
-    videoId: state.currentVideoId || "abPmZCZZrFA",
+    videoId: state.currentVideoId || "JB39GfVEzFA",
     playerVars: {
       autoplay: 1,
       controls: 1,
@@ -337,6 +348,8 @@ function joinOrCreateRoom({ roomCode, roomName, role, createIfMissing }) {
       }
       state.myId = res.myId;
       state.room = res.room;
+      roomVoiceEngine.setMyId(res.myId);
+      roomVoiceEngine.ensureAudioContext();
       enterRoomScreen(role || "tv");
     }
   );
@@ -644,8 +657,95 @@ function renderRoomState(room) {
   // Render Hàng chờ (Queue)
   renderQueue(room.queue || []);
 
+  // Đồng bộ kết nối giọng hát đa thành viên & trạng thái ai đang bật Mic
+  if (state.myId) {
+    roomVoiceEngine.setMyId(state.myId);
+    roomVoiceEngine.syncRoomMembers(room.members || []);
+  }
+  syncActiveSingersFromRoom(room.members || []);
+
   // Render Bảng xếp hạng, Lịch sử & Thành viên
   renderLeaderboardAndMembers(room);
+}
+
+function syncActiveSingersFromRoom(members) {
+  const memberIds = new Set(members.map((m) => m.id));
+  for (const singerId of state.activeSingers.keys()) {
+    if (!memberIds.has(singerId)) {
+      state.activeSingers.delete(singerId);
+    }
+  }
+  for (const m of members) {
+    if (m.isSinging) {
+      const existing = state.activeSingers.get(m.id) || {};
+      state.activeSingers.set(m.id, {
+        singerId: m.id,
+        singerName: m.name,
+        singerAvatar: m.avatar,
+        isSinging: true,
+        liveScore: m.currentLiveScore || existing.liveScore || 65,
+        pitchNote: m.currentPitchNote || existing.pitchNote || "--",
+        volume: m.currentVolume ?? existing.volume ?? 0,
+        accuracyLabel: existing.accuracyLabel || "Đang hát 🎶"
+      });
+    } else {
+      state.activeSingers.delete(m.id);
+    }
+  }
+  renderLiveSingersHud();
+}
+
+function renderLiveSingersHud() {
+  const hud = document.getElementById("tvLiveSingerHud");
+  const bar = document.getElementById("activeSingersBar");
+  const singers = Array.from(state.activeSingers.values());
+
+  if (bar) {
+    if (singers.length === 0) {
+      bar.innerHTML = `<span class="singers-empty-hint">🎙️ Bất kỳ ai bật Mic đều có thể hát &amp; nghe giọng nhau</span>`;
+    } else {
+      bar.innerHTML = singers
+        .map((s) => {
+          const isMe = s.singerId === state.myId;
+          const vol = Math.min(100, Math.max(8, s.volume || 15));
+          return `
+            <span class="active-singer-chip ${s.volume > 10 ? "singing-pulse" : ""}">
+              <span>${escapeHtml(s.singerAvatar || "🎤")}</span>
+              <strong>${escapeHtml(s.singerName)}${isMe ? " (Bạn)" : ""}</strong>
+              <span class="singer-vol-meter"><i style="width:${vol}%"></i></span>
+              <small>${s.liveScore || 65}đ</small>
+            </span>
+          `;
+        })
+        .join("");
+    }
+  }
+
+  if (!hud) return;
+  if (singers.length === 0) {
+    hud.classList.add("hidden");
+    return;
+  }
+
+  hud.classList.remove("hidden");
+  hud.innerHTML = singers
+    .map(
+      (s) => `
+      <div class="singer-hud-item">
+        <div class="singer-hud-header">
+          <span>${escapeHtml(s.singerAvatar || "🎤")}</span>
+          <strong>${escapeHtml(s.singerName || "Ca sĩ")}</strong>
+          <span class="pitch-badge">${escapeHtml(s.pitchNote || "--")}</span>
+        </div>
+        <div class="singer-hud-score-row">
+          <span class="accuracy-text">${escapeHtml(s.accuracyLabel || "Đang hát 🎶")}</span>
+          <span class="live-score-number">${s.liveScore || 0}</span>
+          <small>ĐIỂM</small>
+        </div>
+      </div>
+    `
+    )
+    .join("");
 }
 
 function renderQueue(queue) {
@@ -889,6 +989,7 @@ function bindRoomEvents() {
   // Rời phòng
   document.getElementById("btnLeaveRoom")?.addEventListener("click", () => {
     audioScorer.stop();
+    roomVoiceEngine.destroy();
     window.location.href = window.location.pathname;
   });
 
@@ -1031,35 +1132,62 @@ function bindRoomEvents() {
     btn.textContent = state.localMuted ? "🔇 Nhạc TV: Tắt" : "🔊 Nhạc TV: Bật";
   });
 
-  // Bật / Tắt Micro Hát & Chấm điểm trực tiếp
+  // Âm lượng & Bật/Tắt nghe Giọng hát của các thành viên khác trong phòng
+  document.getElementById("remoteVoiceVolumeSlider")?.addEventListener("input", (e) => {
+    roomVoiceEngine.setRemoteVoiceVolume(e.target.value);
+  });
+
+  const handleToggleRemoteVoice = () => {
+    const muted = roomVoiceEngine.toggleRemoteVoiceMute();
+    const btnMain = document.getElementById("btnToggleRemoteVoice");
+    const btnRemote = document.getElementById("btnRemoteToggleVoice");
+    if (btnMain) {
+      btnMain.textContent = muted ? "🔇 Voice Phòng: Tắt" : "🔊 Voice Phòng: Bật";
+    }
+    if (btnRemote) {
+      btnRemote.textContent = muted ? "🔇 Voice: Tắt" : "🔊 Voice: Bật";
+    }
+    showToast(
+      muted
+        ? "🔇 Đã tắt tiếng giọng hát của các thành viên khác trên thiết bị này."
+        : "🔊 Đã bật nghe giọng hát trực tiếp của mọi thành viên trong phòng!"
+    );
+  };
+
+  document.getElementById("btnToggleRemoteVoice")?.addEventListener("click", handleToggleRemoteVoice);
+  document.getElementById("btnRemoteToggleVoice")?.addEventListener("click", handleToggleRemoteVoice);
+
+  // Bật / Tắt Micro Hát & Truyền giọng trực tiếp cho cả phòng
   const handleMicToggle = async () => {
     const btnMain = document.getElementById("btnToggleMic");
     const btnRemote = document.getElementById("btnRemoteToggleMic");
 
+    roomVoiceEngine.ensureAudioContext();
+
     if (!audioScorer.isActive) {
       const ok = await audioScorer.start();
       if (!ok) {
-        showToast("⚠️ Vui lòng cấp quyền truy cập Micro trên trình duyệt để hát và chấm điểm!");
+        showToast("⚠️ Vui lòng cấp quyền truy cập Micro trên trình duyệt để hát cùng mọi người!");
         return;
       }
       if (btnMain) {
         btnMain.className = "btn btn-mic-on";
-        btnMain.textContent = "🎙️ Đang Bật Mic (Bấm để tắt)";
+        btnMain.textContent = "🎙️ Đang Hát Live (Bấm để tắt Mic)";
       }
       if (btnRemote) {
         btnRemote.className = "btn btn-sm btn-mic-on";
         btnRemote.textContent = "🎙️ Đang Hát (Tắt Mic)";
       }
-      showToast("🎤 Đã bật Micro! Hãy cất tiếng hát để hệ thống chấm điểm trực tiếp!");
+      showToast("🎤 Đã bật Micro! Cả phòng đang nghe giọng hát của bạn trực tiếp!");
     } else {
       audioScorer.stop();
       if (btnMain) {
         btnMain.className = "btn btn-mic-off";
-        btnMain.textContent = "🎙️ Bật Mic Hát & Chấm Điểm";
+        btnMain.textContent = "🎙️ Bật Mic Hát Cùng Phòng";
       }
       if (btnRemote) {
         btnRemote.className = "btn btn-sm btn-mic-off";
-        btnRemote.textContent = "🎙️ Bật Mic ĐT";
+        btnRemote.textContent = "🎙️ Bật Mic Hát";
       }
       showToast("🔇 Đã tắt Micro.");
     }
@@ -1179,20 +1307,16 @@ socket.on("player:sync", ({ action, playback }) => {
 });
 
 socket.on("stage:micLive", (data) => {
-  const hud = document.getElementById("tvLiveSingerHud");
-  if (!hud) return;
-
+  if (!data || !data.singerId) return;
   if (!data.isSinging) {
-    hud.classList.add("hidden");
-    return;
+    state.activeSingers.delete(data.singerId);
+  } else {
+    state.activeSingers.set(data.singerId, {
+      ...data,
+      updatedAt: Date.now()
+    });
   }
-
-  hud.classList.remove("hidden");
-  document.getElementById("tvLiveSingerAvatar").textContent = data.singerAvatar || "🎤";
-  document.getElementById("tvLiveSingerName").textContent = data.singerName || "Ca sĩ";
-  document.getElementById("tvLivePitchBadge").textContent = data.pitchNote || "--";
-  document.getElementById("tvLiveAccuracyText").textContent = data.accuracyLabel || "Đang hát 🎶";
-  document.getElementById("tvLiveScoreNumber").textContent = data.liveScore || 0;
+  renderLiveSingersHud();
 });
 
 socket.on("stage:danmaku", (payload) => {

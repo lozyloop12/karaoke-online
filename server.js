@@ -8,7 +8,8 @@ const { DEFAULT_KARAOKE_SONGS } = require("./data/songs");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: { origin: "*" },
+  maxHttpBufferSize: 5e6
 });
 
 app.use(express.json());
@@ -248,9 +249,14 @@ app.get("/api/youtube/search", async (req, res) => {
     });
   }
 
+  const qLowerCheck = rawQuery.toLowerCase();
+  const hasKaraokeKeyword =
+    qLowerCheck.includes("karaoke") ||
+    qLowerCheck.includes("beat") ||
+    qLowerCheck.includes("instrumental");
   const searchQuery =
-    autoKaraoke && !rawQuery.toLowerCase().includes("karaoke")
-      ? `${rawQuery} karaoke`
+    autoKaraoke && !hasKaraokeKeyword
+      ? `${rawQuery} karaoke beat chuẩn`
       : rawQuery;
 
   try {
@@ -271,7 +277,8 @@ app.get("/api/youtube/search", async (req, res) => {
         const data = JSON.parse(match[1]);
         const contents =
           data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
-        const results = [];
+        const karaokeResults = [];
+        const fallbackResults = [];
 
         for (const section of contents) {
           const items = section?.itemSectionRenderer?.contents || [];
@@ -281,7 +288,25 @@ app.get("/api/youtube/search", async (req, res) => {
             const title = v.title?.runs?.map((r) => r.text).join("") || "Karaoke Video";
             const artist = v.ownerText?.runs?.[0]?.text || "Karaoke Channel";
             const duration = v.lengthText?.simpleText || "Karaoke";
-            results.push({
+            const tLower = title.toLowerCase();
+            const aLower = artist.toLowerCase();
+
+            const isMvWithVocals =
+              tLower.includes("official music video") ||
+              tLower.includes("official mv") ||
+              tLower.includes("official video") ||
+              tLower.includes("m/v") ||
+              tLower.includes("lyrics video") ||
+              tLower.includes("lyric video");
+            const isKaraokeTrack =
+              tLower.includes("karaoke") ||
+              tLower.includes("beat") ||
+              tLower.includes("instrumental") ||
+              tLower.includes("backing track") ||
+              aLower.includes("karaoke") ||
+              aLower.includes("beat");
+
+            const songObj = {
               id: `yt-${v.videoId}`,
               videoId: v.videoId,
               title,
@@ -289,14 +314,25 @@ app.get("/api/youtube/search", async (req, res) => {
               genre: "YouTube",
               duration,
               thumbnail: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
-            });
-            if (results.length >= 16) break;
+            };
+
+            if (isKaraokeTrack) {
+              karaokeResults.push(songObj);
+            } else if (!isMvWithVocals) {
+              fallbackResults.push(songObj);
+            }
+            if (karaokeResults.length >= 16) break;
           }
-          if (results.length >= 16) break;
+          if (karaokeResults.length >= 16) break;
         }
 
-        if (results.length > 0) {
-          return res.json({ songs: results, source: "youtube" });
+        const finalResults =
+          karaokeResults.length > 0
+            ? [...karaokeResults, ...fallbackResults].slice(0, 16)
+            : fallbackResults.slice(0, 16);
+
+        if (finalResults.length > 0) {
+          return res.json({ songs: finalResults, source: "youtube" });
         }
       }
     }
@@ -554,33 +590,46 @@ io.on("connection", (socket) => {
 
     const finishedSong = room.currentSong;
     if (finishedSong && finishWithScore !== false) {
-      // Find who was singing or scored highest during this song
-      let activeSinger = Array.from(room.members.values()).find((m) => m.isSinging || m.currentLiveScore > 0);
-      if (!activeSinger) {
-        activeSinger = room.members.get(socket.id) || Array.from(room.members.values())[0];
+      // Find all members who sang or scored during this song
+      let activeSingers = Array.from(room.members.values()).filter(
+        (m) => m.isSinging || m.currentLiveScore > 0
+      );
+      if (activeSingers.length === 0) {
+        const fallback = room.members.get(socket.id) || Array.from(room.members.values())[0];
+        if (fallback) activeSingers = [fallback];
       }
 
-      // Compute final KTV score (between 68 and 100)
-      let finalScore = manualScore;
-      if (!finalScore) {
-        if (activeSinger && activeSinger.currentLiveScore > 0) {
-          finalScore = Math.min(100, Math.max(72, Math.round(activeSinger.currentLiveScore)));
-        } else {
-          finalScore = Math.floor(82 + Math.random() * 17); // Friendly party KTV score
-        }
+      // Compute individual scores & combined celebration score
+      const singerScores = [];
+      for (const singer of activeSingers) {
+        let sScore =
+          singer.id === socket.id && manualScore
+            ? manualScore
+            : singer.currentLiveScore > 0
+              ? Math.min(100, Math.max(72, Math.round(singer.currentLiveScore)))
+              : Math.floor(82 + Math.random() * 17);
+        singer.songsSung = (singer.songsSung || 0) + 1;
+        singer.totalScore = (singer.totalScore || 0) + sScore;
+        singer.bestScore = Math.max(singer.bestScore || 0, sScore);
+        singer.currentLiveScore = 0;
+        singer.currentPitchNote = "--";
+        singerScores.push(sScore);
       }
+
+      const finalScore =
+        singerScores.length > 0
+          ? Math.round(Math.max(...singerScores))
+          : manualScore || Math.floor(82 + Math.random() * 17);
 
       const rankTitle = getRankTitle(finalScore);
-      const singerName = activeSinger ? activeSinger.name : finishedSong.singerName || "Ca Sĩ Phòng Hát";
-      const singerAvatar = activeSinger ? activeSinger.avatar : "🎤";
-
-      if (activeSinger) {
-        activeSinger.songsSung = (activeSinger.songsSung || 0) + 1;
-        activeSinger.totalScore = (activeSinger.totalScore || 0) + finalScore;
-        activeSinger.bestScore = Math.max(activeSinger.bestScore || 0, finalScore);
-        activeSinger.currentLiveScore = 0;
-        activeSinger.currentPitchNote = "--";
-      }
+      const singerName =
+        activeSingers.length > 1
+          ? activeSingers.map((s) => s.name).join(" & ")
+          : activeSingers[0]?.name || finishedSong.singerName || "Ca Sĩ Phòng Hát";
+      const singerAvatar =
+        activeSingers.length > 1
+          ? activeSingers.map((s) => s.avatar).join("")
+          : activeSingers[0]?.avatar || "🎤";
 
       const record = {
         id: "hist-" + Date.now(),
@@ -629,9 +678,11 @@ io.on("connection", (socket) => {
     const member = room.members.get(socket.id);
     if (!member) return;
 
+    const prevSinging = member.isSinging;
     member.isSinging = Boolean(isSinging);
     if (typeof liveScore === "number") member.currentLiveScore = liveScore;
     if (pitchNote) member.currentPitchNote = pitchNote;
+    member.currentVolume = volume || 0;
 
     io.to(room.code).emit("stage:micLive", {
       singerId: socket.id,
@@ -642,6 +693,67 @@ io.on("connection", (socket) => {
       pitchNote: member.currentPitchNote,
       volume: volume || 0,
       accuracyLabel: accuracyLabel || ""
+    });
+
+    if (prevSinging !== member.isSinging) {
+      io.to(room.code).emit("room:state", serializeRoom(room));
+    }
+  });
+
+  // Real-time Voice Audio Stream Relay (All members hear everyone singing in real time)
+  socket.on("voice:stream", (payload) => {
+    if (!currentRoomCode || !payload || !payload.pcm) return;
+    const room = rooms.get(currentRoomCode);
+    if (!room) return;
+    const member = room.members.get(socket.id);
+    if (!member) return;
+
+    socket.to(currentRoomCode).emit("voice:stream", {
+      singerId: socket.id,
+      singerName: member.name,
+      singerAvatar: member.avatar,
+      pcm: payload.pcm,
+      sampleRate: payload.sampleRate || 16000
+    });
+  });
+
+  // WebRTC Mesh Signaling for Ultra-Low-Latency Multi-Member Voice
+  socket.on("webrtc:announce-mic", ({ isSinging }) => {
+    if (!currentRoomCode) return;
+    const room = rooms.get(currentRoomCode);
+    if (!room) return;
+    const member = room.members.get(socket.id);
+    if (member) {
+      member.isSinging = Boolean(isSinging);
+      io.to(room.code).emit("room:state", serializeRoom(room));
+    }
+    socket.to(currentRoomCode).emit("webrtc:peer-mic", {
+      peerId: socket.id,
+      isSinging: Boolean(isSinging)
+    });
+  });
+
+  socket.on("webrtc:offer", ({ targetId, sdp }) => {
+    if (!targetId || !sdp) return;
+    io.to(targetId).emit("webrtc:offer", {
+      fromId: socket.id,
+      sdp
+    });
+  });
+
+  socket.on("webrtc:answer", ({ targetId, sdp }) => {
+    if (!targetId || !sdp) return;
+    io.to(targetId).emit("webrtc:answer", {
+      fromId: socket.id,
+      sdp
+    });
+  });
+
+  socket.on("webrtc:ice-candidate", ({ targetId, candidate }) => {
+    if (!targetId || !candidate) return;
+    io.to(targetId).emit("webrtc:ice-candidate", {
+      fromId: socket.id,
+      candidate
     });
   });
 
@@ -722,6 +834,14 @@ io.on("connection", (socket) => {
 
     const member = room.members.get(socket.id);
     room.members.delete(socket.id);
+
+    io.to(room.code).emit("stage:micLive", {
+      singerId: socket.id,
+      isSinging: false
+    });
+    io.to(room.code).emit("webrtc:peer-left", {
+      peerId: socket.id
+    });
 
     if (room.members.size === 0) {
       // Keep room alive for 10 minutes in case host refreshes, then clean up

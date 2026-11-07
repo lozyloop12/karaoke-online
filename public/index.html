@@ -292,25 +292,32 @@
             </div>
 
             <div class="audio-Sliders">
-              <button type="button" id="btnToggleLocalMute" class="btn btn-control btn-sm" title="Tắt tiếng video trên thiết bị này (hữu ích khi dùng điện thoại ngồi cạnh TV chính)">
+              <button type="button" id="btnToggleLocalMute" class="btn btn-control btn-sm" title="Tắt tiếng nhạc nền video trên thiết bị này">
                 🔊 Nhạc TV: Bật
               </button>
               <div class="slider-item">
                 <label for="musicVolumeSlider">🎵 Nhạc nền</label>
                 <input type="range" id="musicVolumeSlider" min="0" max="100" value="85" />
               </div>
+              <button type="button" id="btnToggleRemoteVoice" class="btn btn-control btn-sm" title="Bật/Tắt nghe giọng hát trực tiếp của các thành viên khác trong phòng">
+                🔊 Voice Phòng: Bật
+              </button>
+              <div class="slider-item">
+                <label for="remoteVoiceVolumeSlider">🎤 Giọng bạn bè</label>
+                <input type="range" id="remoteVoiceVolumeSlider" min="0" max="200" value="125" />
+              </div>
             </div>
           </div>
 
-          <!-- Hàng 2: Micro Hát Trực Tiếp & Máy Chấm Điểm Giọng Hát (Web Audio API) -->
+          <!-- Hàng 2: Micro Hát Trực Tiếp Đa Thành Viên & Máy Chấm Điểm Giọng Hát (WebRTC + Web Audio API) -->
           <div class="deck-row mic-scorer-row">
             <div class="mic-controls-left">
               <button type="button" id="btnToggleMic" class="btn btn-mic-off">
-                🎙️ Bật Mic Hát &amp; Chấm Điểm
+                🎙️ Bật Mic Hát Cùng Phòng
               </button>
-              <label class="echo-toggle-label" title="Phát giọng hát của bạn ra loa kèm tiếng vang Echo chuẩn phòng KTV (Khuyên dùng tai nghe hoặc loa tách rời để tránh hú)">
+              <label class="echo-toggle-label" title="Mọi thành viên khác luôn nghe được giọng bạn khi bật Mic. Tích ô này nếu bạn muốn phát lại giọng của chính mình ra loa thiết bị đang cầm (nên đeo tai nghe để tránh hú)">
                 <input type="checkbox" id="chkMicEchoMonitor" />
-                <span>🔊 Nghe giọng + Echo KTV</span>
+                <span>🎧 Tự nghe giọng mình</span>
               </label>
               <div class="slider-item mic-gain-slider">
                 <label for="micGainSlider">Độ nhạy Mic</label>
@@ -319,7 +326,10 @@
             </div>
 
             <div class="mic-visualizer-panel">
-              <canvas id="micVisualizerCanvas" width="240" height="42"></canvas>
+              <div id="activeSingersBar" class="active-singers-bar">
+                <span class="singers-empty-hint">🎙️ Bất kỳ ai bật Mic đều có thể hát &amp; nghe giọng nhau</span>
+              </div>
+              <canvas id="micVisualizerCanvas" width="180" height="40"></canvas>
               <div class="mic-live-metrics">
                 <div class="metric-pill">
                   <small>Nốt</small>
@@ -378,7 +388,8 @@
           <div class="remote-quick-actions">
             <button type="button" id="btnRemotePlayPause" class="btn btn-sm btn-control">⏯️ Phát/Dừng</button>
             <button type="button" id="btnRemoteFinishScore" class="btn btn-sm btn-primary">🏆 Chấm điểm &amp; Qua bài</button>
-            <button type="button" id="btnRemoteToggleMic" class="btn btn-sm btn-mic-off">🎙️ Bật Mic ĐT</button>
+            <button type="button" id="btnRemoteToggleMic" class="btn btn-sm btn-mic-off">🎙️ Bật Mic Hát</button>
+            <button type="button" id="btnRemoteToggleVoice" class="btn btn-sm btn-control">🔊 Voice: Bật</button>
           </div>
           <div class="remote-emoji-strip">
             <button type="button" class="btn-reaction-mini" data-emoji="❤️" data-label="Thả tim!" data-sfx="pop">❤️</button>
