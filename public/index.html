@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🎤 Karaoke Online iTV - Phòng Hát Tương Tác Thời Gian Thực</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="theme-neon">
+  <!-- Hiệu ứng ánh sáng sân khấu nền -->
+  <div class="stage-ambient-bg">
+    <div class="spotlight spot-1"></div>
+    <div class="spotlight spot-2"></div>
+    <div class="spotlight spot-3"></div>
+  </div>
+
+  <!-- ================= MÀN HÌNH SẢNH CHỜ (LOBBY) ================= -->
+  <section id="lobbyScreen" class="lobby-screen">
+    <div class="lobby-container">
+      <header class="lobby-header">
+        <div class="brand-badge">📺 iTV INTERACTIVE KARAOKE PARTY</div>
+        <h1 class="lobby-title">🎤 Karaoke Online</h1>
+        <p class="lobby-subtitle">
+          Biến mọi nơi thành phòng karaoke sống động! Mở màn hình lớn làm TV sân khấu và dùng điện thoại để chọn bài, thả tim, chạy chữ lời chúc &amp; chấm điểm giọng hát trực tiếp.
+        </p>
+      </header>
+
+      <!-- Hồ sơ người chơi -->
+      <div class="profile-card glass-card">
+        <div class="profile-row">
+          <div class="profile-field">
+            <label for="userNameInput">✨ Nghệ danh của bạn</label>
+            <input type="text" id="userNameInput" placeholder="Nhập tên của bạn (VD: Minh Anh, Tuấn Kiệt...)" maxlength="26" />
+          </div>
+          <div class="profile-field">
+            <label>🎭 Chọn Avatar</label>
+            <div id="avatarSelector" class="avatar-selector">
+              <button type="button" class="avatar-btn active" data-avatar="🎤">🎤</button>
+              <button type="button" class="avatar-btn" data-avatar="👑">👑</button>
+              <button type="button" class="avatar-btn" data-avatar="🎸">🎸</button>
+              <button type="button" class="avatar-btn" data-avatar="🦊">🦊</button>
+              <button type="button" class="avatar-btn" data-avatar="🐱">🐱</button>
+              <button type="button" class="avatar-btn" data-avatar="🐼">🐼</button>
+              <button type="button" class="avatar-btn" data-avatar="🕺">🕺</button>
+              <button type="button" class="avatar-btn" data-avatar="💃">💃</button>
+              <button type="button" class="avatar-btn" data-avatar="🦄">🦄</button>
+              <button type="button" class="avatar-btn" data-avatar="🕶️">🕶️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 Cột Tạo Phòng & Vào Phòng -->
+      <div class="lobby-grid">
+        <!-- Cột 1: Tạo phòng mới -->
+        <div class="lobby-box glass-card">
+          <div class="box-header">
+            <span class="box-icon">🌟</span>
+            <div>
+              <h2>Tạo Phòng Hát Mới</h2>
+              <p>Mở phòng karaoke riêng và mời bạn bè cùng vào quẩy</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="createRoomNameInput">Tên phòng karaoke</label>
+            <input type="text" id="createRoomNameInput" placeholder="VD: Phòng Karaoke Đêm Khuya 🎶" maxlength="45" />
+          </div>
+
+          <div class="form-group">
+            <label>Chế độ hiển thị của thiết bị này</label>
+            <div class="role-selector" id="createRoleSelector">
+              <button type="button" class="role-option active" data-role="tv">
+                <span class="role-emoji">📺</span>
+                <div>
+                  <strong>Màn hình chính iTV</strong>
+                  <small>Phát video Karaoke, chạy chữ &amp; hiệu ứng sân khấu</small>
+                </div>
+              </button>
+              <button type="button" class="role-option" data-role="remote">
+                <span class="role-emoji">📱</span>
+                <div>
+                  <strong>Điều khiển Điện thoại</strong>
+                  <small>Giao diện gọn để chọn bài, thả tim &amp; cầm Mic hát</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" id="btnCreateRoom" class="btn btn-primary btn-lg btn-block">
+            🚀 Tạo Phòng &amp; Lên Sân Khấu Ngay
+          </button>
+        </div>
+
+        <!-- Cột 2: Tham gia phòng có sẵn -->
+        <div class="lobby-box glass-card">
+          <div class="box-header">
+            <span class="box-icon">🔗</span>
+            <div>
+              <h2>Tham Gia Phòng Bạn Bè</h2>
+              <p>Nhập mã phòng 6 ký tự hoặc chọn phòng đang hoạt động</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="joinRoomCodeInput">Mã phòng (6 ký tự)</label>
+            <div class="join-code-row">
+              <input type="text" id="joinRoomCodeInput" class="code-input" placeholder="VD: ITV888" maxlength="8" />
+              <select id="joinRoleSelect" class="role-select">
+                <option value="tv">📺 Xem Màn hình TV</option>
+                <option value="remote">📱 Làm Điều khiển ĐT</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="button" id="btnJoinRoom" class="btn btn-accent btn-lg btn-block">
+            🎶 Vào Phòng Theo Mã
+          </button>
+
+          <div class="active-rooms-section">
+            <div class="section-label-row">
+              <span>🔥 Các phòng đang hát trực tiếp</span>
+              <button type="button" id="btnRefreshRooms" class="btn-link">🔄 Làm mới</button>
+            </div>
+            <div id="activeRoomsList" class="active-rooms-list">
+              <div class="empty-rooms-hint">Chưa có phòng nào đang mở. Hãy là người đầu tiên tạo phòng nhé!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GIAO DIỆN PHÒNG HÁT (ROOM VIEW) ================= -->
+  <section id="roomScreen" class="room-screen hidden">
+    <!-- Thanh Header Phòng Hát -->
+    <header class="room-topbar glass-card">
+      <div class="topbar-left">
+        <div class="itv-live-pill">
+          <span class="pulse-dot"></span>
+          <span>iTV KARAOKE</span>
+        </div>
+        <div class="room-title-group">
+          <h2 id="roomNameDisplay">Phòng Karaoke iTV</h2>
+          <button type="button" id="btnCopyRoomCode" class="room-code-badge" title="Bấm để sao chép mã phòng">
+            Mã phòng: <strong id="roomCodeDisplay">ITV888</strong> 📋
+          </button>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="mode-switch-group">
+          <button type="button" id="btnSwitchTvMode" class="mode-switch-btn active">
+            📺 Màn hình TV
+          </button>
+          <button type="button" id="btnSwitchRemoteMode" class="mode-switch-btn">
+            📱 Điều khiển ĐT
+          </button>
+        </div>
+
+        <div class="theme-picker-group">
+          <label for="stageThemeSelect" class="sr-only">Đèn sân khấu</label>
+          <select id="stageThemeSelect" class="theme-select" title="Đổi hiệu ứng ánh sáng sân khấu">
+            <option value="neon">💡 Đèn Neon KTV</option>
+            <option value="cyber">🔮 Sân khấu Cyberpunk</option>
+            <option value="disco">🪩 Sàn nhảy Disco Party</option>
+            <option value="sunset">🌅 Phòng trà Hoàng Hôn</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button type="button" id="btnQuickFocusSearch" class="btn btn-accent btn-sm">
+          🔍 Tìm &amp; Chọn Bài Hát
+        </button>
+        <button type="button" id="btnOpenInviteModal" class="btn btn-glow btn-sm">
+          📲 Quét QR / Mời Bạn Bè
+        </button>
+        <button type="button" id="btnLeaveRoom" class="btn btn-outline-danger btn-sm">
+          🚪 Rời Phòng
+        </button>
+      </div>
+    </header>
+
+    <!-- Bố cục chính của Phòng Hát -->
+    <main id="roomMainLayout" class="room-main-layout">
+      <!-- ====== CỘT TRÁI: SÂN KHẤU TV LỚN (iTV STAGE) ====== -->
+      <div id="tvStageColumn" class="tv-stage-column">
+        <!-- Khung Màn Hình TV iTV -->
+        <div class="tv-frame-wrapper glass-card">
+          <!-- Lớp đèn LED viền sân khấu -->
+          <div class="tv-ambilight-glow"></div>
+
+          <div class="tv-screen-container">
+            <!-- Header nổi góc trên màn hình TV kiểu kênh iTV -->
+            <div class="tv-overlay-top">
+              <div class="tv-now-playing-banner">
+                <span class="tv-channel-logo">iTV<span>HD</span></span>
+                <div class="tv-song-meta">
+                  <div id="tvNowPlayingTitle" class="tv-song-title">Đang tải bài hát...</div>
+                  <div id="tvNowPlayingSub" class="tv-song-sub">🎤 Ca sĩ: Mọi người • Chọn bởi: Hệ thống</div>
+                </div>
+              </div>
+
+              <div class="tv-top-right-widgets">
+                <!-- Hộp hiển thị người đang hát & điểm số trực tiếp trên TV -->
+                <div id="tvLiveSingerHud" class="tv-live-singer-hud hidden">
+                  <div class="singer-hud-header">
+                    <span id="tvLiveSingerAvatar">🎤</span>
+                    <strong id="tvLiveSingerName">Ca sĩ</strong>
+                    <span id="tvLivePitchBadge" class="pitch-badge">A4</span>
+                  </div>
+                  <div class="singer-hud-score-row">
+                    <span id="tvLiveAccuracyText" class="accuracy-text">CHUẨN NHỊP! ✨</span>
+                    <span id="tvLiveScoreNumber" class="live-score-number">88</span>
+                    <small>ĐIỂM</small>
+                  </div>
+                </div>
+
+                <!-- Hộp Bài Tiếp Theo (Up Next) -->
+                <div class="tv-up-next-box">
+                  <span class="up-next-label">⏭️ TIẾP THEO</span>
+                  <div id="tvUpNextTitle" class="up-next-title">Chưa có bài trong hàng chờ</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Trình phát Video YouTube Karaoke -->
+            <div class="youtube-player-box">
+              <div id="youtubePlayer"></div>
+
+              <!-- Màn hình chờ khi hết bài hoặc video chặn nhúng -->
+              <div id="tvFallbackOverlay" class="tv-fallback-overlay hidden">
+                <div class="fallback-content">
+                  <div class="fallback-icon">🎤</div>
+                  <h3 id="fallbackTitle">Sân khấu đang chờ bài hát tiếp theo!</h3>
+                  <p id="fallbackDesc">Hãy chọn một bài hát từ Kho nhạc hoặc tìm kiếm trên YouTube ở cột bên phải.</p>
+                  <div class="fallback-actions">
+                    <button type="button" id="btnFallbackSearchAlt" class="btn btn-primary hidden">
+                      🔍 Tìm bản Karaoke khác của bài này
+                    </button>
+                    <button type="button" id="btnFallbackSkipNext" class="btn btn-accent">
+                      ⏭️ Phát bài tiếp theo trong hàng chờ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lớp phủ bình luận bay (Danmaku) & Mưa Emoji -->
+            <div id="danmakuLayer" class="danmaku-layer"></div>
+            <div id="reactionBurstLayer" class="reaction-burst-layer"></div>
+
+            <!-- Góc phải dưới: Nhãn mã phòng nhanh kiểu iTV -->
+            <div class="tv-corner-qr-hint" id="btnCornerInvite">
+              <span>📱 Vào phòng: <strong id="tvCornerRoomCode">ITV888</strong></span>
+              <small>Bấm để mở QR chọn bài bằng ĐT</small>
+            </div>
+
+            <!-- Thanh chạy chữ iTV (Marquee Ticker) cạnh dưới màn hình TV -->
+            <div class="itv-marquee-bar">
+              <div class="marquee-badge">💌 SÓNG TƯƠNG TÁC iTV</div>
+              <div class="marquee-viewport">
+                <div id="itvMarqueeTrack" class="marquee-track">
+                  <span>📺 Chào mừng bạn đến với phòng hát Karaoke Online iTV! Hãy chọn bài và gửi lời chúc chạy chữ trên màn hình nhé!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thanh Điều Khiển Sân Khấu, Micro Chấm Điểm & Hiệu Ứng Cổ Vũ -->
+        <div class="stage-controls-deck glass-card">
+          <!-- Hàng 1: Điều khiển phát nhạc & Âm lượng -->
+          <div class="deck-row playback-deck-row">
+            <div class="playback-btns">
+              <button type="button" id="btnPlayPause" class="btn btn-control" title="Phát / Tạm dừng đồng bộ">
+                ⏯️ <span id="playPauseLabel">Tạm dừng</span>
+              </button>
+              <button type="button" id="btnReplaySong" class="btn btn-control" title="Hát lại từ đầu bài">
+                🔄 Hát lại
+              </button>
+              <button type="button" id="btnFinishAndScore" class="btn btn-primary" title="Chấm điểm bài hát hiện tại và chuyển sang bài kế tiếp">
+                🏆 Chấm Điểm &amp; Qua Bài
+              </button>
+              <button type="button" id="btnSkipNoScore" class="btn btn-control" title="Bỏ qua bài này không chấm điểm">
+                ⏭️ Qua bài
+              </button>
+            </div>
+
+            <div class="audio-Sliders">
+              <button type="button" id="btnToggleLocalMute" class="btn btn-control btn-sm" title="Tắt tiếng video trên thiết bị này (hữu ích khi dùng điện thoại ngồi cạnh TV chính)">
+                🔊 Nhạc TV: Bật
+              </button>
+              <div class="slider-item">
+                <label for="musicVolumeSlider">🎵 Nhạc nền</label>
+                <input type="range" id="musicVolumeSlider" min="0" max="100" value="85" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Hàng 2: Micro Hát Trực Tiếp & Máy Chấm Điểm Giọng Hát (Web Audio API) -->
+          <div class="deck-row mic-scorer-row">
+            <div class="mic-controls-left">
+              <button type="button" id="btnToggleMic" class="btn btn-mic-off">
+                🎙️ Bật Mic Hát &amp; Chấm Điểm
+              </button>
+              <label class="echo-toggle-label" title="Phát giọng hát của bạn ra loa kèm tiếng vang Echo chuẩn phòng KTV (Khuyên dùng tai nghe hoặc loa tách rời để tránh hú)">
+                <input type="checkbox" id="chkMicEchoMonitor" />
+                <span>🔊 Nghe giọng + Echo KTV</span>
+              </label>
+              <div class="slider-item mic-gain-slider">
+                <label for="micGainSlider">Độ nhạy Mic</label>
+                <input type="range" id="micGainSlider" min="0.5" max="2.5" step="0.1" value="1.2" />
+              </div>
+            </div>
+
+            <div class="mic-visualizer-panel">
+              <canvas id="micVisualizerCanvas" width="240" height="42"></canvas>
+              <div class="mic-live-metrics">
+                <div class="metric-pill">
+                  <small>Nốt</small>
+                  <strong id="localPitchNote">--</strong>
+                </div>
+                <div class="metric-pill">
+                  <small>Đánh giá</small>
+                  <strong id="localAccuracyLabel">Chưa bật Mic</strong>
+                </div>
+                <div class="metric-pill score-pill">
+                  <small>Điểm Live</small>
+                  <strong id="localLiveScore">0</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hàng 3: Bàn phím Biểu cảm, Pháo hoa & Âm thanh Cổ vũ -->
+          <div class="deck-row reactions-deck-row">
+            <span class="deck-label">🎉 Cổ vũ sân khấu:</span>
+            <div class="reaction-buttons-group">
+              <button type="button" class="btn-reaction" data-emoji="❤️" data-label="Thả tim cuồng nhiệt!" data-sfx="pop">
+                ❤️ Thả tim
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="🎆" data-label="Bắn pháo hoa rực rỡ!" data-sfx="chime">
+                🎆 Pháo hoa
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="🌹" data-label="Tặng hoa hồng cho ca sĩ!" data-sfx="chime">
+                🌹 Hoa hồng
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="👏" data-label="Vỗ tay rần rần!" data-sfx="applause">
+                👏 Vỗ tay
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="📢" data-label="Kèn DJ khuấy động!" data-sfx="airhorn">
+                📢 Kèn DJ
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="🍻" data-label="Dzô 100% nào anh em!" data-sfx="pop">
+                🍻 Cụm ly
+              </button>
+              <button type="button" class="btn-reaction" data-emoji="🔥" data-label="Cháy quá ca sĩ ơi!" data-sfx="chime">
+                🔥 Quẩy lửa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== CỘT PHẢI: BẢNG ĐIỀU KHIỂN CHỌN BÀI, HÀNG CHỜ, CHAT iTV & XẾP HẠNG ====== -->
+      <aside class="companion-sidebar glass-card">
+        <!-- Hộp điều khiển nhanh chỉ hiện rõ ở chế độ Điều khiển Điện thoại (Remote Mode) -->
+        <div id="mobileRemoteQuickHeader" class="mobile-remote-quick-header hidden">
+          <div class="remote-now-playing">
+            <span class="remote-badge">📱 ĐIỀU KHIỂN TỪ XA</span>
+            <strong id="remoteNowPlayingTitle">Đang phát...</strong>
+          </div>
+          <div class="remote-quick-actions">
+            <button type="button" id="btnRemotePlayPause" class="btn btn-sm btn-control">⏯️ Phát/Dừng</button>
+            <button type="button" id="btnRemoteFinishScore" class="btn btn-sm btn-primary">🏆 Chấm điểm &amp; Qua bài</button>
+            <button type="button" id="btnRemoteToggleMic" class="btn btn-sm btn-mic-off">🎙️ Bật Mic ĐT</button>
+          </div>
+          <div class="remote-emoji-strip">
+            <button type="button" class="btn-reaction-mini" data-emoji="❤️" data-label="Thả tim!" data-sfx="pop">❤️</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="🎆" data-label="Pháo hoa!" data-sfx="chime">🎆</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="🌹" data-label="Tặng hoa!" data-sfx="chime">🌹</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="👏" data-label="Vỗ tay!" data-sfx="applause">👏</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="📢" data-label="Kèn DJ!" data-sfx="airhorn">📢</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="🍻" data-label="Dzô!" data-sfx="pop">🍻</button>
+            <button type="button" class="btn-reaction-mini" data-emoji="🔥" data-label="Quá cháy!" data-sfx="chime">🔥</button>
+          </div>
+        </div>
+
+        <!-- Thanh 4 Tab Điều Khiển -->
+        <nav class="sidebar-tabs">
+          <button type="button" class="tab-btn active" data-tab="tabSongs">
+            🎵 Chọn Bài
+          </button>
+          <button type="button" class="tab-btn" data-tab="tabQueue">
+            📋 Hàng Chờ <span id="queueCountBadge" class="tab-badge">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-tab="tabChat">
+            💬 Chat iTV
+          </button>
+          <button type="button" class="tab-btn" data-tab="tabLeaderboard">
+            🏆 Xếp Hạng <span id="memberCountBadge" class="tab-badge">1</span>
+          </button>
+        </nav>
+
+        <!-- TAB 1: KHO BÀI HÁT & TÌM KIẾM YOUTUBE KARAOKE -->
+        <div id="tabSongs" class="tab-pane active">
+          <div class="search-panel">
+            <div class="search-input-group">
+              <input
+                type="text"
+                id="songSearchInput"
+                placeholder="🔍 Tìm bài hát YouTube Karaoke hoặc dán link YouTube..."
+              />
+              <button type="button" id="btnSearchYouTube" class="btn btn-primary btn-sm">
+                Tìm kiếm
+              </button>
+            </div>
+
+            <!-- Tùy chọn ghi tên người hát & lời chúc chạy chữ kiểu iTV khi chọn bài -->
+            <div class="dedication-inputs-row">
+              <input
+                type="text"
+                id="songSingerInput"
+                placeholder="🎤 Người hát (Mặc định: Bạn)"
+                maxlength="28"
+              />
+              <input
+                type="text"
+                id="songDedicationInput"
+                placeholder="💌 Lời nhắn chạy chữ lên màn hình TV (tùy chọn)..."
+                maxlength="120"
+              />
+            </div>
+
+            <!-- Bộ lọc thể loại nhanh -->
+            <div id="genreFilterBar" class="genre-filter-bar">
+              <button type="button" class="genre-chip active" data-genre="ALL">🔥 Tất cả</button>
+              <button type="button" class="genre-chip" data-genre="Nhạc Trẻ">🇻🇳 Nhạc Trẻ</button>
+              <button type="button" class="genre-chip" data-genre="Remix / Party">🪩 Remix / Quẩy</button>
+              <button type="button" class="genre-chip" data-genre="Ballad">💖 Ballad</button>
+              <button type="button" class="genre-chip" data-genre="Rap / Indie">🎧 Rap / Indie</button>
+              <button type="button" class="genre-chip" data-genre="US-UK">🌍 US-UK</button>
+              <button type="button" class="genre-chip" data-genre="FAV">❤️ Yêu thích</button>
+            </div>
+          </div>
+
+          <div id="songsListContainer" class="songs-list-container">
+            <!-- Danh sách bài hát sẽ được render động tại đây -->
+          </div>
+        </div>
+
+        <!-- TAB 2: DANH SÁCH CHỜ (SMART QUEUE) -->
+        <div id="tabQueue" class="tab-pane hidden">
+          <div class="queue-header-info">
+            <span>🎶 Các bài hát sắp lên sóng (Bấm ❤️ để bình chọn đẩy bài lên cao kiểu iTV)</span>
+          </div>
+          <div id="queueListContainer" class="queue-list-container">
+            <!-- Hàng chờ bài hát render tại đây -->
+          </div>
+        </div>
+
+        <!-- TAB 3: TRÒ CHUYỆN TRỰC TIẾP & CHẠY CHỮ iTV (CHAT & DANMAKU) -->
+        <div id="tabChat" class="tab-pane hidden">
+          <div id="chatMessagesContainer" class="chat-messages-container">
+            <!-- Tin nhắn phòng hát -->
+          </div>
+
+          <form id="chatForm" class="chat-input-form">
+            <div class="chat-tv-options">
+              <label class="tv-danmaku-toggle">
+                <input type="checkbox" id="chkSendToTvTicker" checked />
+                <span>📺 Bắn chữ bay lên màn hình TV &amp; Dải chữ iTV</span>
+              </label>
+              <input type="color" id="danmakuColorPicker" value="#00f5d4" title="Chọn màu chữ chạy trên TV" />
+            </div>
+            <div class="chat-send-row">
+              <input
+                type="text"
+                id="chatTextInput"
+                placeholder="Nhập lời chúc, bình luận hoặc yêu cầu bài hát..."
+                maxlength="180"
+              />
+              <button type="submit" class="btn btn-primary">Gửi 🚀</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 4: BẢNG XẾP HẠNG GIỌNG CA VÀNG & THÀNH VIÊN -->
+        <div id="tabLeaderboard" class="tab-pane hidden">
+          <div class="leaderboard-section">
+            <h3 class="pane-section-title">🏆 Bảng Vàng Giọng Ca Xuất Sắc</h3>
+            <div id="leaderboardListContainer" class="leaderboard-list"></div>
+          </div>
+
+          <div class="leaderboard-section">
+            <h3 class="pane-section-title">🎙️ Lịch Sử Chấm Điểm Gần Đây</h3>
+            <div id="scoreHistoryContainer" class="score-history-list"></div>
+          </div>
+
+          <div class="leaderboard-section">
+            <h3 class="pane-section-title">👥 Thành Viên Trong Phòng</h3>
+            <div id="membersListContainer" class="members-list"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </section>
+
+  <!-- ================= MODAL CHẤM ĐIỂM CUỐI BÀI (KTV SCORE MODAL) ================= -->
+  <div id="scoreModal" class="modal-backdrop hidden">
+    <div class="score-modal-card glass-card">
+      <div class="score-confetti-glow"></div>
+      <div class="score-modal-badge">🎉 KẾT QUẢ TRÌNH DIỄN KARAOKE 🎉</div>
+      <div class="score-singer-info">
+        <span id="modalSingerAvatar" class="modal-singer-avatar">🎤</span>
+        <h3 id="modalSingerName">Ca Sĩ</h3>
+        <p id="modalSongTitle">Bài hát</p>
+      </div>
+      <div class="score-circle">
+        <span id="modalScoreValue" class="score-big-number">98</span>
+        <small>ĐIỂM</small>
+      </div>
+      <div id="modalRankTitle" class="score-rank-title">👑 Siêu Sao Giọng Ca Vàng (SSS)</div>
+      <button type="button" id="btnCloseScoreModal" class="btn btn-primary btn-lg">
+        🎶 Tiếp Tục Quẩy Bài Tiếp Theo
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL MỜI BẠN BÈ & QUÉT QR ĐIỀU KHIỂN ĐT ================= -->
+  <div id="inviteModal" class="modal-backdrop hidden">
+    <div class="invite-modal-card glass-card">
+      <div class="modal-header">
+        <h3>📲 Kết Nối Bạn Bè &amp; Điều Khiển Qua Điện Thoại</h3>
+        <button type="button" id="btnCloseInviteModal" class="btn-close-modal">✕</button>
+      </div>
+
+      <p class="invite-desc">
+        Quét mã QR bằng Camera điện thoại hoặc gửi đường link bên dưới cho bạn bè để cùng chọn bài, thả tim và cầm Mic hát!
+      </p>
+
+      <div class="qr-box-wrapper">
+        <img id="inviteQrImage" alt="QR Code vào phòng hát" class="qr-image" />
+        <div class="qr-room-code-pill">
+          Mã phòng: <strong id="modalRoomCodeText">ITV888</strong>
+        </div>
+      </div>
+
+      <div class="invite-links-group">
+        <div class="invite-link-item">
+          <label>📱 Link làm Điều khiển từ xa trên Điện thoại (Remote):</label>
+          <div class="copy-input-row">
+            <input type="text" id="remoteInviteUrlInput" readonly />
+            <button type="button" id="btnCopyRemoteUrl" class="btn btn-primary btn-sm">Sao chép</button>
+          </div>
+        </div>
+
+        <div class="invite-link-item">
+          <label>📺 Link vào phòng chế độ Màn hình TV:</label>
+          <div class="copy-input-row">
+            <input type="text" id="tvInviteUrlInput" readonly />
+            <button type="button" id="btnCopyTvUrl" class="btn btn-accent btn-sm">Sao chép</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast thông báo nhanh -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Thư viện Socket.io & Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="/js/sound-fx.js"></script>
+  <script src="/js/audio-scorer.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
+

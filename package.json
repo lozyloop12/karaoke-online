@@ -1,0 +1,14 @@
+{
+  "name": "karaoke-online",
+  "version": "1.0.0",
+  "description": "Karaoke Online - Phòng hát tương tác thời gian thực kiểu iTV",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}
